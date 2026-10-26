@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IGCSE 0478 — Packet Reassembly Puzzle</title>
+<style>
+:root{--bg:#f4f7fb;--ink:#172033;--muted:#61718a;--line:#d9e2ee;--navy:#10243a;--blue:#2563eb;--green:#047857;--red:#b91c1c;--pale:#eff6ff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+header{background:linear-gradient(120deg,#10243a,#155e75);color:white;padding:25px 16px}header>div,main{max-width:900px;margin:auto}h1{font-size:clamp(1.55rem,4vw,2.15rem);line-height:1.15;margin:0 0 8px}h2{font-size:1.2rem;margin:0 0 10px}p{margin:5px 0}.sub{color:#dbeafe}
+main{padding:18px 12px 36px}.card{background:white;border:1px solid var(--line);border-radius:16px;padding:17px;margin-bottom:15px;box-shadow:0 4px 18px #10243a08}
+.btn{font:inherit;font-weight:700;border:0;border-radius:10px;padding:11px 14px;background:var(--blue);color:white;cursor:pointer}.btn.secondary{background:#e8eef6;color:#1e293b}.btn:disabled{opacity:.45;cursor:not-allowed}
+.muted{color:var(--muted);font-size:.9rem}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.row>*{flex:1}.row .tight{flex:0 0 auto}
+.arrivals{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:14px 0}
+.packet{background:#fff7ed;border:2px solid #fdba74;border-radius:12px;padding:12px 7px;text-align:center;cursor:pointer;min-width:0}
+.packet:hover{border-color:#f97316}.packet.selected{outline:3px solid #93c5fd;border-color:#2563eb;background:#eff6ff}
+.packet .arrival{display:block;font-size:.72rem;color:#9a3412;font-weight:800;letter-spacing:.04em}.packet .data{display:block;font-size:1.2rem;font-weight:850;overflow-wrap:anywhere;margin:6px 0}.packet .seq{font-size:.8rem;color:#7c2d12}
+.slots{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:14px 0}
+.slot{min-height:110px;border:2px dashed #b8c5d6;background:#f8fafc;border-radius:12px;padding:10px;text-align:center;display:flex;flex-direction:column;justify-content:center;gap:6px}
+.slot .slotlabel{font-size:.76rem;color:var(--muted);font-weight:800}
+.slot button{font:inherit;border:0;border-radius:8px;padding:9px 4px;background:#dbeafe;color:#1e40af;font-weight:800;cursor:pointer;overflow-wrap:anywhere}
+.slot button:focus,.packet:focus{outline:3px solid #60a5fa;outline-offset:2px}
+.slot.filled{border-style:solid;border-color:#93c5fd;background:#eff6ff}
+.btnbar{display:flex;gap:9px;flex-wrap:wrap}.btnbar .btn{flex:1;min-width:140px}
+.feedback{padding:12px;border-radius:10px;margin-top:12px}.good{background:#ecfdf5;border-left:4px solid #10b981}.bad{background:#fef2f2;border-left:4px solid #ef4444}.info{background:#eff6ff;border-left:4px solid #3b82f6}
+.challenge{display:flex;align-items:flex-start;gap:10px}.challenge input{margin-top:5px;transform:scale(1.15)}
+.answer{background:#dcfce7;color:#166534;border-radius:10px;padding:14px;font-size:1.25rem;font-weight:850;overflow-wrap:anywhere}
+.explain{background:#f1f5f9;border-radius:12px;padding:13px}
+.footer{text-align:center;color:var(--muted);font-size:.82rem;padding:8px}
+@media(max-width:560px){.arrivals,.slots{grid-template-columns:repeat(2,minmax(0,1fr))}.card{padding:13px}.slot{min-height:100px}.btnbar .btn{min-width:100%}}
+</style>
+</head>
+<body>
+<header><div><h1>Packet Reassembly Puzzle</h1><p class="sub">Cambridge IGCSE Computer Science 0478 · Put the packets in sequence to reconstruct the message.</p></div></header>
+<main>
+<section class="card">
+<h2>Mission: Rebuild the message</h2>
+<p>A message was split into four packets. They have arrived in the wrong order. Select a packet below, then select a numbered slot to place it there. You can also move a packet by selecting it and choosing a different slot.</p>
+<div class="row" style="margin-top:14px">
+ <div><strong>Difficulty</strong><p class="muted">Choose a challenge mode.</p></div>
+ <button id="normalMode" class="btn">Four packets</button>
+ <button id="missingMode" class="btn secondary">Missing packet challenge</button>
+</div>
+<div id="modeDescription" class="feedback info">All four packets are available. Arrange them in sequence-number order from 1 to 4.</div>
+</section>
+
+<section class="card">
+<h2>1. Packets as received</h2>
+<p class="muted">Arrival order is not necessarily the original order. Tap a packet to select it.</p>
+<div id="arrivals" class="arrivals"></div>
+<p id="selectedLabel" class="muted" aria-live="polite">No packet selected.</p>
+</section>
+
+<section class="card">
+<h2>2. Arrange by sequence number</h2>
+<p class="muted">Select a packet above, then tap the slot where it belongs. To change a slot, select a new packet and tap the occupied slot.</p>
+<div id="slots" class="slots"></div>
+<div class="btnbar">
+ <button id="check" class="btn">Check my answer</button>
+ <button id="clear" class="btn secondary">Clear arrangement</button>
+ <button id="hint" class="btn secondary">Show a hint</button>
+</div>
+<div id="feedback" aria-live="polite"></div>
+<div id="reveal" class="hidden" style="margin-top:14px">
+ <h2>Reconstructed message</h2>
+ <div id="messageAnswer" class="answer"></div>
+ <p class="muted">The payloads are joined in sequence-number order.</p>
+</div>
+</section>
+
+<section class="card">
+<h2>What if a packet is missing?</h2>
+<p>In the optional challenge, one packet is missing. Arrange the packets you have, identify the missing sequence number, and explain why the receiver cannot reconstruct the complete message until the missing data is recovered.</p>
+<div id="missingQuestion" class="hidden">
+ <label for="missingSeq" style="display:block;font-weight:700;margin:12px 0 6px">Which sequence number is missing?</label>
+ <div class="row">
+  <select id="missingSeq" style="padding:10px;border:1px solid #cbd5e1;border-radius:9px;font:inherit">
+   <option value="">Choose sequence number</option><option value="1">Packet 1</option><option value="2">Packet 2</option><option value="3">Packet 3</option><option value="4">Packet 4</option>
+  </select>
+  <button id="checkMissing" class="btn tight">Check missing packet</button>
+ </div>
+ <div id="missingFeedback" aria-live="polite"></div>
+</div>
+</section>
+
+<section class="card">
+<h2>Exam knowledge: packet reassembly</h2>
+<div class="explain">
+ <p><strong>1.</strong> A message is divided into smaller packets before transmission.</p>
+ <p><strong>2.</strong> Each packet carries part of the message as its payload and may include a sequence number in relevant protocol information.</p>
+ <p><strong>3.</strong> Packets can take different routes and arrive out of order.</p>
+ <p><strong>4.</strong> The receiving device uses sequence information to put the payloads back in the correct order.</p>
+ <p><strong>5.</strong> If a packet is missing or corrupted, reliable communication protocols may arrange for it to be retransmitted before the complete data is accepted.</p>
+</div>
+<div class="feedback info"><strong>Remember:</strong> Packet formats vary by protocol. Sequence numbering and retransmission are associated with the communication protocols being used; they are not implemented identically by every network protocol.</div>
+</section>
+<div class="footer">Interactive classroom activity · Works offline · No student data is collected</div>
+</main>
+<script>
+(() => {
+const $=id=>document.getElementById(id);
+const packetData=[
+ {seq:1,payload:'THE ',arrival:3},
+ {seq:2,payload:'NET',arrival:1},
+ {seq:3,payload:'WORK ',arrival:4},
+ {seq:4,payload:'WORKS!',arrival:2}
+];
+let mode='normal', selected=null, placements=[null,null,null,null];
+const missingSeq=3;
+const available=()=>mode==='normal'?packetData:packetData.filter(p=>p.seq!==missingSeq);
+function setFeedback(msg,type='info'){ $('feedback').className='feedback '+type; $('feedback').textContent=msg; }
+function render(){
+ const list=available().slice().sort((a,b)=>a.arrival-b.arrival);
+ $('arrivals').innerHTML='';
+ list.forEach(p=>{
+  const b=document.createElement('button');b.type='button';b.className='packet'+(selected===p.seq?' selected':'');
+  b.setAttribute('aria-pressed',String(selected===p.seq));
+  const arr=document.createElement('span');arr.className='arrival';arr.textContent='ARRIVED #'+p.arrival;
+  const data=document.createElement('span');data.className='data';data.textContent=p.payload.replace(/ /g,'·');
+  const seq=document.createElement('span');seq.className='seq';seq.textContent='Sequence number: '+p.seq;
+  b.append(arr,data,seq);b.addEventListener('click',()=>{selected=selected===p.seq?null:p.seq;render();});
+  $('arrivals').append(b);
+ });
+ $('selectedLabel').textContent=selected===null?'No packet selected. Select a packet, then tap a slot.':'Selected packet '+selected+'. Now choose a slot.';
+ $('slots').innerHTML='';
+ placements.forEach((seq,i)=>{
+  const box=document.createElement('div');box.className='slot'+(seq!==null?' filled':'');
+  const label=document.createElement('span');label.className='slotlabel';label.textContent='SLOT '+(i+1);
+  box.append(label);
+  if(seq===null){const placeholder=document.createElement('span');placeholder.className='muted';placeholder.textContent='Tap to place';box.append(placeholder);}
+  else {
+   const p=packetData.find(x=>x.seq===seq);
+   const btn=document.createElement('button');btn.type='button';btn.textContent='Packet '+seq+' · '+p.payload.replace(/ /g,'·');btn.title='Tap to remove this packet from the slot';
+   btn.addEventListener('click',()=>{placements[i]=null;selected=seq;hideResult();render();});box.append(btn);
+  }
+  box.addEventListener('click',e=>{
+   if(e.target.tagName==='BUTTON')return;
+   if(selected===null){if(placements[i]!==null){selected=placements[i];placements[i]=null;hideResult();render();}else setFeedback('First select a packet from the arrival area, then choose a slot.','info');return;}
+   const existingIndex=placements.indexOf(selected);
+   if(existingIndex>=0)placements[existingIndex]=null;
+   const replaced=placements[i];
+   placements[i]=selected;
+   selected=replaced===null?null:replaced;
+   hideResult();render();
+  });
+  $('slots').append(box);
+ });
+ $('normalMode').className='btn'+(mode==='normal'?'':' secondary');
+ $('missingMode').className='btn'+(mode==='missing'?'':' secondary');
+ $('modeDescription').textContent=mode==='normal'?'All four packets are available. Arrange them in sequence-number order from 1 to 4.':'Challenge mode: packet 3 is missing. Arrange the three available packets in their correct slots, then identify the missing sequence number.';
+ $('missingQuestion').classList.toggle('hidden',mode!=='missing');
+ if(mode==='missing'){$('missingSeq').value='';$('missingFeedback').innerHTML='';}
+}
+function hideResult(){$('reveal').classList.add('hidden');}
+$('normalMode').addEventListener('click',()=>{mode='normal';selected=null;placements=[null,null,null,null];hideResult();setFeedback('All four packets are available. Arrange them in sequence-number order from 1 to 4.','info');render();});
+$('missingMode').addEventListener('click',()=>{mode='missing';selected=null;placements=[null,null,null,null];hideResult();setFeedback('Challenge mode: one packet is missing. Arrange the available packets and identify the missing sequence number.','info');render();});
+$('check').addEventListener('click',()=>{
+ const target=mode==='normal'?[1,2,3,4]:[1,2,null,4];
+ if(placements.every((v,i)=>v===target[i])){
+  setFeedback(mode==='normal'?'Correct! All packets are arranged in sequence-number order.':'The available packets are in the correct slots. Now identify the missing sequence number below.','good');
+  if(mode==='normal'){$('messageAnswer').textContent=packetData.slice().sort((a,b)=>a.seq-b.seq).map(p=>p.payload).join('').trim();$('reveal').classList.remove('hidden');}
+ }else{
+  setFeedback('Not quite. Use each packet’s sequence number to decide which slot it belongs in. The slot number should match the packet sequence number.','bad');
+ }
+});
+$('clear').addEventListener('click',()=>{placements=[null,null,null,null];selected=null;hideResult();setFeedback('Arrangement cleared. Start again by selecting a packet.','info');render();});
+$('hint').addEventListener('click',()=>{setFeedback('Hint: look at the sequence number printed on each packet. Packet 1 belongs in slot 1, packet 2 in slot 2, and so on. Arrival number is not the same as sequence number.','info');});
+$('checkMissing').addEventListener('click',()=>{
+ const val=Number($('missingSeq').value);
+ if(!val){$('missingFeedback').className='feedback bad';$('missingFeedback').textContent='Choose a sequence number first.';return;}
+ if(val===missingSeq){$('missingFeedback').className='feedback good';$('missingFeedback').textContent='Correct! Packet 3 is missing. The receiver has a gap in the sequence, so it cannot reconstruct the complete message from the packets currently available.';}
+ else{$('missingFeedback').className='feedback bad';$('missingFeedback').textContent='Not quite. Check the sequence numbers of the packets that are still available.';}
+});
+render();
+})();
+</script>
+</body>
+</html>
