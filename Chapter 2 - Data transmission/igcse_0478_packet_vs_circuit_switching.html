@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IGCSE 0478 — Packet Switching vs Circuit Switching</title>
+<style>
+:root{--bg:#f4f7fb;--ink:#172033;--muted:#64748b;--line:#d9e2ee;--navy:#10243a;--blue:#2563eb;--green:#059669;--orange:#ea580c;--red:#dc2626}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+header{background:linear-gradient(120deg,#10243a,#155e75);color:white;padding:25px 16px}header>div,main{max-width:1100px;margin:auto}h1{font-size:clamp(1.5rem,4vw,2.2rem);line-height:1.15;margin:0 0 8px}h2{font-size:1.2rem;margin:0 0 10px}h3{font-size:1rem;margin:0 0 7px}p{margin:5px 0}.sub{color:#dbeafe}
+main{padding:18px 12px 36px}.card{background:white;border:1px solid var(--line);border-radius:16px;padding:17px;margin-bottom:15px;box-shadow:0 4px 18px #10243a08}
+.btn{font:inherit;font-weight:700;border:0;border-radius:10px;padding:11px 14px;background:var(--blue);color:white;cursor:pointer}.btn.secondary{background:#e8eef6;color:#1e293b}.btn.active{background:var(--navy);color:white}.btn:focus{outline:3px solid #93c5fd;outline-offset:2px}
+.controls{display:flex;gap:8px;flex-wrap:wrap}.controls .btn{flex:1;min-width:130px}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:14px}.mode{border:1px solid var(--line);border-radius:13px;padding:12px;min-width:0}.mode h3{display:flex;align-items:center;gap:7px}.tag{font-size:.72rem;font-weight:800;border-radius:999px;padding:3px 8px;background:#dbeafe;color:#1d4ed8}
+svg{display:block;width:100%;height:auto;background:#f8fbff;border:1px solid var(--line);border-radius:10px}
+.status{padding:10px 12px;border-radius:9px;background:#eff6ff;border-left:4px solid #3b82f6;margin-top:10px}.muted{font-size:.88rem;color:var(--muted)}
+.choices{display:flex;gap:8px;flex-wrap:wrap}.choices .btn{flex:1;min-width:140px}.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}.panel{background:#f1f5f9;border-radius:12px;padding:13px}.panel p{font-size:.94rem}
+ul{padding-left:21px;margin:8px 0}li{margin:5px 0}.good{background:#ecfdf5;border-left:4px solid #10b981}.warn{background:#fffbeb;border-left:4px solid #f59e0b}
+.footer{text-align:center;color:var(--muted);font-size:.82rem;padding:8px}
+@media(max-width:760px){.modes,.two{grid-template-columns:1fr}.card{padding:13px}.controls .btn{min-width:100%}}
+</style>
+</head>
+<body>
+<header><div><h1>Packet Switching vs Circuit Switching</h1><p class="sub">Cambridge IGCSE Computer Science 0478 · Compare the network behaviour interactively.</p></div></header>
+<main>
+<section class="card">
+<h2>Explore a network event</h2>
+<p>Choose a situation and compare what happens to the data in both network types. The diagrams are simplified models for learning.</p>
+<div class="choices" style="margin-top:12px">
+ <button class="btn active" data-event="normal">Normal traffic</button>
+ <button class="btn secondary" data-event="busy">A link becomes busy</button>
+ <button class="btn secondary" data-event="failed">A link fails</button>
+</div>
+<div id="eventIntro" class="status">Normal traffic: data can travel between sender and receiver.</div>
+</section>
+
+<section class="card">
+<div class="modes">
+ <article class="mode">
+  <h3><span class="tag">A</span> Packet switching</h3>
+  <p class="muted">Message split into packets. Routers forward packets independently.</p>
+  <svg id="packetSvg" viewBox="0 0 460 275" role="img" aria-label="Packet switching network diagram">
+   <defs><marker id="pa" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L5,3 L0,6Z" fill="#94a3b8"/></marker></defs>
+   <rect width="460" height="275" fill="#f8fbff"/>
+   <g stroke="#94a3b8" stroke-width="3" fill="none" marker-end="url(#pa)">
+    <path d="M57 137 H115"/><path d="M145 127 L205 70"/><path d="M145 147 L205 207"/><path d="M235 70 L305 127"/><path d="M235 207 L305 147"/><path d="M335 137 H398"/>
+    <path id="packetAlt" d="M145 137 Q240 10 398 120" stroke-dasharray="6 5" opacity=".75"/>
+   </g>
+   <g fill="#dbeafe" stroke="#60a5fa" stroke-width="2"><rect x="17" y="111" width="40" height="52" rx="8"/><rect x="115" y="119" width="30" height="36" rx="7"/><rect x="205" y="52" width="30" height="36" rx="7"/><rect x="205" y="189" width="30" height="36" rx="7"/><rect x="305" y="119" width="30" height="36" rx="7"/><rect x="398" y="111" width="45" height="52" rx="8"/></g>
+   <g fill="#172033" font-size="10" font-weight="800" text-anchor="middle"><text x="37" y="133">SEND</text><text x="37" y="145">A</text><text x="130" y="141">R1</text><text x="220" y="74">R2</text><text x="220" y="211">R3</text><text x="320" y="141">R4</text><text x="420" y="133">RECV</text><text x="420" y="145">B</text></g>
+   <g fill="#64748b" font-size="10" text-anchor="middle"><text x="220" y="38">Route 1</text><text x="220" y="244">Route 2</text><text x="225" y="267">Packets can use alternative routes</text></g>
+   <g id="packetTokens"></g><g id="packetFailure"></g>
+  </svg>
+  <div id="packetStatus" class="status">Packets can use either route.</div>
+ </article>
+ <article class="mode">
+  <h3><span class="tag" style="background:#ffedd5;color:#9a3412">B</span> Circuit switching</h3>
+  <p class="muted">A dedicated path is established before data is sent.</p>
+  <svg id="circuitSvg" viewBox="0 0 460 275" role="img" aria-label="Circuit switching network diagram">
+   <defs><marker id="ca" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L5,3 L0,6Z" fill="#94a3b8"/></marker></defs>
+   <rect width="460" height="275" fill="#f8fbff"/>
+   <g stroke="#94a3b8" stroke-width="3" fill="none" marker-end="url(#ca)">
+    <path d="M57 137 H115"/><path id="circuitPath1" d="M145 127 L205 70"/><path id="circuitPath2" d="M235 70 L305 127"/><path d="M335 137 H398"/>
+    <path d="M145 147 L205 207 M235 207 L305 147" stroke-dasharray="5 5" opacity=".45"/>
+   </g>
+   <g fill="#ffedd5" stroke="#fb923c" stroke-width="2"><rect x="17" y="111" width="40" height="52" rx="8"/><rect x="115" y="119" width="30" height="36" rx="7"/><rect x="205" y="52" width="30" height="36" rx="7"/><rect x="205" y="189" width="30" height="36" rx="7"/><rect x="305" y="119" width="30" height="36" rx="7"/><rect x="398" y="111" width="45" height="52" rx="8"/></g>
+   <g fill="#172033" font-size="10" font-weight="800" text-anchor="middle"><text x="37" y="133">SEND</text><text x="37" y="145">A</text><text x="130" y="141">R1</text><text x="220" y="74">R2</text><text x="220" y="211">R3</text><text x="320" y="141">R4</text><text x="420" y="133">RECV</text><text x="420" y="145">B</text></g>
+   <path id="circuitHighlight" d="M57 137 H115 L205 70 H235 L305 127 H335 L398 137" fill="none" stroke="#ea580c" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" opacity=".85"/>
+   <g id="circuitTokens"></g><g id="circuitFailure"></g>
+   <g fill="#64748b" font-size="10" text-anchor="middle"><text x="220" y="38">Reserved path</text><text x="220" y="267">Path is set up before data transfer</text></g>
+  </svg>
+  <div id="circuitStatus" class="status">A dedicated path is established for the session.</div>
+ </article>
+</div>
+</section>
+
+<section class="card">
+<h2>What changed?</h2>
+<div class="two">
+ <div class="panel"><h3>Packet switching</h3><p id="packetExplanation">Packets are forwarded through routers. Alternative routes may be available if a link becomes busy or fails.</p></div>
+ <div class="panel"><h3>Circuit switching</h3><p id="circuitExplanation">A dedicated route is reserved for the duration of the connection. If a link on that route fails, the connection may be interrupted and need to be re-established.</p></div>
+</div>
+</section>
+
+<section class="card">
+<h2>Advantages and disadvantages</h2>
+<div class="two">
+ <div class="panel"><h3>Packet switching</h3><ul><li><strong>Advantage:</strong> Network links can be shared by packets from many users, making efficient use of capacity.</li><li><strong>Advantage:</strong> Packets may be rerouted if an alternative route is available.</li><li><strong>Disadvantage:</strong> Packets can be delayed and may arrive out of order.</li></ul></div>
+ <div class="panel"><h3>Circuit switching</h3><ul><li><strong>Advantage:</strong> Once established, the dedicated path provides predictable use of the reserved capacity.</li><li><strong>Disadvantage:</strong> Reserved capacity may be wasted when no data is being sent.</li><li><strong>Disadvantage:</strong> A failure on the dedicated path can interrupt the connection.</li></ul></div>
+</div>
+<div class="status warn"><strong>IGCSE reminder:</strong> Do not say packet switching always avoids congestion or that every packet takes a different route. Routers make forwarding decisions, and packets may still be delayed or lost.</div>
+</section>
+<div class="footer">Interactive learning resource · Works offline · No student data is collected</div>
+</main>
+<script>
+(() => {
+const $=id=>document.getElementById(id);
+let event='normal';
+const packetDots=[{x:85,y:137,c:'#2563eb',n:'1'},{x:165,y:108,c:'#ea580c',n:'2'},{x:272,y:98,c:'#059669',n:'3'}];
+function svgEl(tag,attrs,text){const el=document.createElementNS('http://www.w3.org/2000/svg',tag);Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,v));if(text!==undefined)el.textContent=text;return el;}
+function drawPacket(){
+ const g=$('packetTokens');g.innerHTML='';
+ let positions;
+ if(event==='normal') positions=[[83,137],[172,102],[273,103]];
+ if(event==='busy') positions=[[84,137],[170,185],[278,193]];
+ if(event==='failed') positions=[[83,137],[160,92],[266,196]];
+ positions.forEach((pos,i)=>{
+  const c=packetDots[i].c;
+  const circle=svgEl('circle',{cx:pos[0],cy:pos[1],r:11,fill:c,stroke:'#fff','stroke-width':2});
+  const t=svgEl('text',{x:pos[0],y:pos[1]+4,fill:'#fff','font-size':10,'font-weight':800,'text-anchor':'middle'},String(i+1));
+  g.append(circle,t);
+ });
+ const failure=$('packetFailure');failure.innerHTML='';
+ if(event==='failed'){
+  failure.append(svgEl('path',{d:'M260 80 L286 106 M286 80 L260 106',stroke:'#dc2626','stroke-width':5,'stroke-linecap':'round'}));
+  failure.append(svgEl('text',{x:275,y:68,fill:'#b91c1c','font-size':11,'font-weight':800,'text-anchor':'middle'},'FAILED'));
+ }
+}
+function drawCircuit(){
+ const highlight=$('circuitHighlight');
+ const tokens=$('circuitTokens');tokens.innerHTML='';
+ const fail=$('circuitFailure');fail.innerHTML='';
+ if(event==='normal'){
+  highlight.setAttribute('opacity','.85');highlight.setAttribute('stroke','#ea580c');
+  tokens.append(svgEl('circle',{cx:175,cy:100,r:10,fill:'#ea580c',stroke:'#fff','stroke-width':2}));
+  tokens.append(svgEl('text',{x:175,y:104,fill:'#fff','font-size':10,'font-weight':800,'text-anchor':'middle'},'D'));
+ }else if(event==='busy'){
+  highlight.setAttribute('opacity','.95');highlight.setAttribute('stroke','#f59e0b');
+  tokens.append(svgEl('rect',{x:238,y:98,width:46,height:24,rx:6,fill:'#fef3c7',stroke:'#f59e0b','stroke-width':2}));
+  tokens.append(svgEl('text',{x:261,y:113,fill:'#92400e','font-size':9,'font-weight':800,'text-anchor':'middle'},'BUSY'));
+ }else{
+  highlight.setAttribute('opacity','.2');highlight.setAttribute('stroke','#dc2626');
+  fail.append(svgEl('path',{d:'M260 80 L286 106 M286 80 L260 106',stroke:'#dc2626','stroke-width':5,'stroke-linecap':'round'}));
+  fail.append(svgEl('text',{x:275,y:68,fill:'#b91c1c','font-size':11,'font-weight':800,'text-anchor':'middle'},'FAILED'));
+  fail.append(svgEl('circle',{cx:175,cy:100,r:10,fill:'#ea580c',stroke:'#fff','stroke-width':2}));
+  fail.append(svgEl('text',{x:175,y:104,fill:'#fff','font-size':10,'font-weight':800,'text-anchor':'middle'},'D'));
+ }
+}
+const copy={
+ normal:{
+ intro:'Normal traffic: both systems can send data between the sender and receiver, but they organise the connection differently.',
+ packet:'Packets are forwarded by routers. Links are shared, and packets from one message do not require one permanently reserved end-to-end path.',
+ circuit:'A dedicated path is established before data transfer. The path remains reserved for the connection even during pauses in the conversation.',
+ ps:'Packet switching shares network links and can forward packets through available routes. Delays can vary.',
+ cs:'Circuit switching reserves a path for the session, giving predictable use of that reserved capacity.'
+ },
+ busy:{
+ intro:'Busy link: one network link has heavy traffic. Packet switching may use another available route, while circuit switching keeps using its reserved path.',
+ packet:'If a route becomes congested, routers may forward packets along another available route. This can help, but it does not guarantee no delay.',
+ circuit:'The established circuit continues to use its reserved route. If that link is busy, the connection may experience reduced availability or setup may be blocked for new calls; a circuit is not automatically rerouted like individual packets.',
+ ps:'An alternative route may be available. Packets can still queue or be delayed, and the alternative route may also be busy.',
+ cs:'The circuit uses its established route and reserved capacity. New connections may be refused if no circuit capacity is available.'
+ },
+ failed:{
+ intro:'Failed link: a link on the highlighted route has stopped working. Watch how the two approaches differ.',
+ packet:'Routers may send packets through an alternative working route if one is available. Packets already in transit may be lost or delayed, and rerouting is not guaranteed.',
+ circuit:'The dedicated path is broken, so the connection is interrupted. A new circuit may need to be established over another route.',
+ ps:'An alternative route may let later packets continue toward the destination. Some packets may need retransmission depending on the protocols used.',
+ cs:'The reserved end-to-end path is broken, so the active connection is interrupted until a usable circuit is established.'
+ }
+};
+function setEvent(next){
+ event=next;
+ document.querySelectorAll('[data-event]').forEach(b=>{b.classList.toggle('active',b.dataset.event===event);b.classList.toggle('secondary',b.dataset.event!==event);});
+ const c=copy[event];
+ $('eventIntro').textContent=c.intro;$('packetStatus').textContent=c.ps;$('circuitStatus').textContent=c.cs;
+ $('packetExplanation').textContent=c.packet;$('circuitExplanation').textContent=c.circuit;
+ drawPacket();drawCircuit();
+}
+document.querySelectorAll('[data-event]').forEach(b=>b.addEventListener('click',()=>setEvent(b.dataset.event)));
+setEvent('normal');
+})();
+</script>
+</body>
+</html>
