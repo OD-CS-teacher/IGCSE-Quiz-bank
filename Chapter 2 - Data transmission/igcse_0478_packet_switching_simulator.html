@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IGCSE 0478 — Interactive Packet Switching Simulator</title>
+<style>
+  :root{--navy:#10243a;--blue:#2563eb;--pale:#eff6ff;--green:#047857;--mint:#d1fae5;--ink:#172033;--muted:#64748b;--line:#dbe3ed;--bg:#f5f8fc;--orange:#c2410c}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+  header{background:linear-gradient(120deg,#10243a,#174a69);color:white;padding:28px 18px}
+  header .wrap,main{max-width:1050px;margin:auto}
+  h1{font-size:clamp(1.6rem,4vw,2.25rem);line-height:1.15;margin:0 0 10px}
+  h2{font-size:1.22rem;margin:0 0 12px}
+  p{margin:6px 0}
+  .sub{color:#dbeafe;max-width:760px}
+  main{padding:20px 14px 40px}
+  .card{background:white;border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:0 4px 18px #0f172a08}
+  label{display:block;font-weight:650;margin-bottom:6px}
+  textarea,input,select,button{font:inherit}
+  textarea,input{width:100%;padding:11px 12px;border:1px solid #cbd5e1;border-radius:10px;background:white;color:var(--ink)}
+  textarea{resize:vertical;min-height:78px}
+  .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .row>*{flex:1}
+  .row .tight{flex:0 0 auto}
+  .muted{color:var(--muted);font-size:.9rem}
+  .btn{border:0;border-radius:10px;padding:10px 14px;background:var(--blue);color:white;font-weight:700;cursor:pointer}
+  .btn.secondary{background:#e8eef6;color:#1e293b}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
+  .segmented{display:flex;gap:8px;flex-wrap:wrap}
+  .segmented button{flex:1;min-width:120px}
+  .segmented .active{background:var(--navy);color:white}
+  .stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
+  .stat{background:#f1f5f9;border-radius:12px;padding:12px}
+  .stat span{display:block;color:var(--muted);font-size:.82rem}
+  .stat strong{font-size:1.6rem}
+  .network{background:#102b24;color:white;border-radius:14px;padding:15px}
+  .endpoints{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+  .endpoint small{display:block;color:#a7f3d0;font-size:.75rem;letter-spacing:.05em}
+  .endpoint strong{display:block}
+  .endpoint code{color:#d1fae5;font-size:.8rem}
+  .arrow{color:#a7f3d0;font-size:1.5rem}
+  .packet-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:9px;margin-top:12px}
+  .packet{border:2px solid #376354;border-radius:10px;background:#1b4438;color:white;padding:10px;text-align:left;cursor:pointer;min-width:0}
+  .packet.active{background:#d1fae5;border-color:#34d399;color:#064e3b}
+  .packet .num{font-size:.76rem;font-weight:750;display:flex;justify-content:space-between}
+  .packet .payload{display:block;text-align:center;margin:9px 0;background:#102b24;color:white;padding:9px 4px;border-radius:7px;font-weight:800;overflow-wrap:anywhere}
+  .packet.active .payload{background:#a7f3d0;color:#064e3b}
+  .packet .seq{font-size:.78rem}
+  .breakdown{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .fieldbox{border-radius:12px;padding:14px;min-width:0}
+  .headerbox{background:#dbeafe;color:#1e3a8a}
+  .payloadbox{background:#dcfce7;color:#166534}
+  .field{padding:8px 0;border-bottom:1px solid #93c5fd}
+  .field:last-child{border:0}
+  .field small{display:block;opacity:.8}
+  .field strong{overflow-wrap:anywhere}
+  .payloadbig{font-size:1.5rem;font-weight:800;overflow-wrap:anywhere}
+  .checkbox{display:flex;align-items:flex-start;gap:9px}
+  .checkbox input{width:auto;margin-top:5px}
+  .note{border-left:4px solid #f59e0b;background:#fffbeb;padding:12px 14px;border-radius:8px}
+  .success{border-left:4px solid #10b981;background:#ecfdf5;padding:12px 14px;border-radius:8px}
+  .hidden{display:none!important}
+  .footer{color:var(--muted);font-size:.85rem;text-align:center;padding:10px}
+  @media(max-width:620px){.breakdown{grid-template-columns:1fr}.card{padding:14px}.endpoints{align-items:flex-start}.packet-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>Interactive Packet Switching Simulator</h1>
+    <p class="sub">Cambridge IGCSE Computer Science 0478 · Explore packets, headers, payloads, sequence numbers and error checking.</p>
+  </div>
+</header>
+<main>
+  <section class="card">
+    <h2>1. Create a message</h2>
+    <label for="message">Your message (up to 80 characters)</label>
+    <textarea id="message" maxlength="80">HELLO WORLD!</textarea>
+    <div class="row" style="margin-top:10px">
+      <div>
+        <label>Payload size</label>
+        <div class="segmented" role="group" aria-label="Payload size">
+          <button class="btn secondary" data-size="2">2 characters</button>
+          <button class="btn active" data-size="4">4 characters</button>
+          <button class="btn secondary" data-size="6">6 characters</button>
+        </div>
+      </div>
+      <button id="reset" class="btn secondary tight" style="align-self:end">Reset example</button>
+    </div>
+    <div class="stats">
+      <div class="stat"><span>Packets created</span><strong id="packetCount">3</strong></div>
+      <div class="stat"><span>Message characters</span><strong id="charCount">12</strong></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>2. Explore the network</h2>
+    <p class="muted">Select a packet to inspect it. This is a simplified model; the packet paths are illustrative.</p>
+    <div class="network">
+      <div class="endpoints">
+        <div class="endpoint"><small>SENDER</small><strong>Computer A</strong><code>192.168.1.10</code></div>
+        <div class="arrow" aria-hidden="true">→</div>
+        <div class="endpoint" style="text-align:right"><small>RECEIVER</small><strong>Computer B</strong><code>192.168.1.20</code></div>
+      </div>
+      <div style="border-top:1px solid #376354;padding-top:10px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
+        <strong>Message packets</strong><span id="sendStatus" style="color:#a7f3d0">Ready to send</span>
+      </div>
+      <div id="packetGrid" class="packet-grid"></div>
+    </div>
+  </section>
+
+  <section class="card" id="detailCard">
+    <h2 id="detailTitle">3. Packet 1 breakdown</h2>
+    <div class="breakdown">
+      <div class="fieldbox headerbox">
+        <strong>HEADER — control information</strong>
+        <div class="field"><small>Source address</small><strong>192.168.1.10</strong></div>
+        <div class="field"><small>Destination address</small><strong>192.168.1.20</strong></div>
+        <div class="field"><small>Sequence number</small><strong id="seqValue">1 of 3</strong></div>
+      </div>
+      <div class="fieldbox payloadbox">
+        <strong>PAYLOAD — message data</strong>
+        <div id="payloadValue" class="payloadbig" style="margin-top:12px">HELL</div>
+        <p id="payloadLength">4 characters of data</p>
+      </div>
+    </div>
+    <div style="margin-top:12px" class="fieldbox" style="background:#f1f5f9">
+      <strong>Error-checking demonstration</strong>
+      <div class="row" style="margin-top:8px">
+        <div><span class="muted">Simple checksum</span><div style="font-size:1.35rem;font-weight:800" id="checksumValue">46</div></div>
+        <button id="checksumExplain" class="btn secondary tight">Explain error checking</button>
+      </div>
+      <p id="checksumText" class="muted hidden">This teaching model adds the character codes in the payload and takes the remainder after division by 256. A receiver could recalculate and compare the checksum. This is a simplified example, not a specification of a real network protocol.</p>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <button id="previous" class="btn secondary" disabled>← Previous packet</button>
+      <button id="next" class="btn secondary">Next packet →</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>4. Send and reassemble</h2>
+    <p>Send the packets to the receiver, then reconstruct the message in sequence-number order.</p>
+    <button id="send" class="btn">➤ Send all packets</button>
+    <div id="received" class="success hidden" style="margin-top:12px">
+      <strong>Packets have arrived!</strong>
+      <p id="receivedText"></p>
+      <button id="reassemble" class="btn secondary" style="margin-top:8px">Reassemble message</button>
+      <div id="reassembled" class="hidden" style="margin-top:12px;background:white;border-radius:10px;padding:12px">
+        <span class="muted">ORIGINAL MESSAGE RECONSTRUCTED</span>
+        <div id="originalMessage" style="font-size:1.25rem;font-weight:800;overflow-wrap:anywhere"></div>
+        <span style="color:#047857">Payloads joined in sequence order.</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>IGCSE 0478 — key ideas</h2>
+    <ul>
+      <li><strong>Packet:</strong> a small part of a larger message.</li>
+      <li><strong>Header:</strong> control information used to handle and route a packet.</li>
+      <li><strong>Payload:</strong> the actual data being transmitted.</li>
+      <li><strong>Sequence number:</strong> helps identify packet order and supports reassembly.</li>
+      <li><strong>Error checking:</strong> helps detect data corruption.</li>
+      <li><strong>Packet switching:</strong> packets are forwarded towards their destination; they may take different routes and arrive out of order.</li>
+    </ul>
+    <div class="note"><strong>Exam note:</strong> Real packet fields depend on the protocol. Source and destination addresses, sequencing and error-checking information may be carried in different protocol headers or other parts of the communication process. Not every packet contains all these fields in the same format.</div>
+  </section>
+  <div class="footer">Made for classroom practice · Works offline in a modern browser · No data is sent anywhere</div>
+</main>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const message = $('message');
+  let chunkSize = 4, selected = 0, sent = false, showReassembled = false;
+  let packets = [];
+  const checksum = payload => [...payload].reduce((sum, ch) => sum + ch.charCodeAt(0), 0) % 256;
+
+  function makePackets() {
+    const text = message.value.slice(0,80);
+    packets = [];
+    for (let i=0; i<text.length; i+=chunkSize) {
+      const payload = text.slice(i,i+chunkSize);
+      packets.push({seq:packets.length+1,payload,source:'192.168.1.10',dest:'192.168.1.20',check:checksum(payload)});
+    }
+    selected = Math.min(selected, Math.max(0,packets.length-1));
+    sent = false;
+    showReassembled = false;
+    $('sendStatus').textContent = 'Ready to send';
+    $('received').classList.add('hidden');
+    $('reassembled').classList.add('hidden');
+    render();
+  }
+  function render() {
+    $('packetCount').textContent = packets.length;
+    $('charCount').textContent = [...message.value].length;
+    const grid = $('packetGrid');
+    grid.innerHTML = '';
+    packets.forEach((p,i) => {
+      const btn = document.createElement('button');
+      btn.className = 'packet' + (i===selected?' active':'');
+      btn.type = 'button';
+      btn.setAttribute('aria-pressed',String(i===selected));
+      const num = document.createElement('span'); num.className='num';
+      const left = document.createElement('span'); left.textContent='PACKET '+p.seq;
+      const right = document.createElement('span'); right.textContent=i===selected?'✓':'';
+      num.append(left,right);
+      const payload = document.createElement('span'); payload.className='payload'; payload.textContent=p.payload.replace(/ /g,'·');
+      const seq = document.createElement('span'); seq.className='seq'; seq.textContent='Sequence: '+p.seq;
+      btn.append(num,payload,seq);
+      btn.addEventListener('click',()=>{selected=i;render();});
+      grid.append(btn);
+    });
+    const active = packets[selected];
+    $('detailTitle').textContent = active ? '3. Packet '+active.seq+' breakdown' : '3. Packet breakdown';
+    $('seqValue').textContent = active ? active.seq+' of '+packets.length : '—';
+    $('payloadValue').textContent = active ? active.payload.replace(/ /g,'·') : '(empty message)';
+    $('payloadLength').textContent = active ? [...active.payload].length+' character(s) of data' : 'No payload';
+    $('checksumValue').textContent = active ? active.check : '—';
+    $('previous').disabled = selected<=0 || !packets.length;
+    $('next').disabled = selected>=packets.length-1 || !packets.length;
+    document.querySelectorAll('[data-size]').forEach(b=>{
+      const activeSize=Number(b.dataset.size)===chunkSize;
+      b.classList.toggle('active',activeSize);
+      b.classList.toggle('secondary',!activeSize);
+    });
+  }
+  document.querySelectorAll('[data-size]').forEach(b=>b.addEventListener('click',()=>{
+    chunkSize=Number(b.dataset.size); selected=0; makePackets();
+  }));
+  message.addEventListener('input',()=>{selected=0;makePackets();});
+  $('reset').addEventListener('click',()=>{
+    message.value='HELLO WORLD!';chunkSize=4;selected=0;
+    $('checksumText').classList.add('hidden');makePackets();
+  });
+  $('previous').addEventListener('click',()=>{selected=Math.max(0,selected-1);render();});
+  $('next').addEventListener('click',()=>{selected=Math.min(packets.length-1,selected+1);render();});
+  $('checksumExplain').addEventListener('click',()=>{
+    $('checksumText').classList.toggle('hidden');
+    $('checksumExplain').textContent=$('checksumText').classList.contains('hidden')?'Explain error checking':'Hide checksum explanation';
+  });
+  $('send').addEventListener('click',()=>{
+    sent=true;showReassembled=false;
+    $('sendStatus').textContent='Sent to receiver';
+    $('receivedText').textContent='The receiver has received '+packets.length+' packet(s) in this simplified demonstration.';
+    $('received').classList.remove('hidden');
+    $('reassembled').classList.add('hidden');
+  });
+  $('reassemble').addEventListener('click',()=>{
+    $('originalMessage').textContent=packets.slice().sort((a,b)=>a.seq-b.seq).map(p=>p.payload).join('');
+    $('reassembled').classList.remove('hidden');
+  });
+  makePackets();
+})();
+</script>
+</body>
+</html>
