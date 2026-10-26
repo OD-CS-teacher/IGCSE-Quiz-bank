@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IGCSE 0478 — Packet Routing & Reordering</title>
+<style>
+:root{--bg:#f4f7fb;--ink:#172033;--muted:#61718a;--line:#d9e2ee;--navy:#10243a;--blue:#2563eb;--green:#059669;--orange:#ea580c;--purple:#7c3aed}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+header{background:linear-gradient(120deg,#10243a,#155e75);color:white;padding:25px 16px}header>div,main{max-width:1050px;margin:auto}h1{font-size:clamp(1.55rem,4vw,2.2rem);line-height:1.15;margin:0 0 8px}h2{font-size:1.2rem;margin:0 0 10px}p{margin:5px 0}.sub{color:#dbeafe}
+main{padding:18px 12px 36px}.card{background:white;border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:15px;box-shadow:0 4px 18px #10243a08}
+.btn{font:inherit;font-weight:700;border:0;border-radius:10px;padding:11px 14px;background:var(--blue);color:white;cursor:pointer}.btn.secondary{background:#e8eef6;color:#1e293b}.btn:disabled{opacity:.4;cursor:not-allowed}
+.controls{display:flex;gap:9px;flex-wrap:wrap}.controls .btn{flex:1;min-width:130px}.status{font-weight:750;color:#1d4ed8}.muted{font-size:.9rem;color:var(--muted)}
+svg{display:block;width:100%;height:auto}.map{background:#f8fbff;border:1px solid var(--line);border-radius:13px;overflow:hidden}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.82rem;color:var(--muted);margin-top:10px}.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px}
+.packet-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.packet-chip{border:1px solid var(--line);border-radius:9px;padding:8px 12px;background:#f8fafc;font-weight:750}.packet-chip.active{background:#dbeafe;border-color:#60a5fa;color:#1d4ed8}.packet-chip.arrived{background:#d1fae5;border-color:#34d399;color:#065f46}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}.panel{border-radius:12px;padding:13px;background:#f1f5f9}.panel h3{font-size:1rem;margin:0 0 5px}.panel p{font-size:.94rem}.note{border-left:4px solid #f59e0b;background:#fffbeb;padding:12px;border-radius:8px}.success{border-left:4px solid #10b981;background:#ecfdf5;padding:12px;border-radius:8px}.footer{text-align:center;color:var(--muted);font-size:.82rem;padding:8px}
+@media(max-width:650px){.two{grid-template-columns:1fr}.card{padding:13px}.controls .btn{min-width:100%}}
+</style>
+</head>
+<body>
+<header><div><h1>Packet Switching: Route & Reassemble</h1><p class="sub">Cambridge IGCSE Computer Science 0478 · Step through packets travelling through a network.</p></div></header>
+<main>
+<section class="card">
+<h2>Network simulation</h2>
+<p class="muted">Advance one step at a time. Watch packets take different routes and arrive in a different order from the order they were sent.</p>
+<div class="map">
+<svg id="network" viewBox="0 0 760 365" role="img" aria-label="Network diagram with sender, three routers, alternative routes and receiver">
+<defs>
+ <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6Z" fill="#94a3b8"/></marker>
+ <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#0f172a" flood-opacity=".12"/></filter>
+</defs>
+<rect width="760" height="365" fill="#f8fbff"/>
+<!-- Links -->
+<g fill="none" stroke="#94a3b8" stroke-width="3" marker-end="url(#arrow)">
+ <path d="M88 180 L180 180"/>
+ <path d="M218 160 Q265 95 315 105"/>
+ <path d="M218 200 Q265 265 315 260"/>
+ <path d="M353 105 Q405 105 455 180"/>
+ <path d="M353 260 Q405 260 455 180"/>
+ <path d="M493 180 L590 180"/>
+ <path d="M218 180 Q330 25 475 100 Q535 125 610 160" stroke-dasharray="7 6" opacity=".7"/>
+</g>
+<g font-size="12" fill="#64748b" font-weight="600">
+ <text x="245" y="76">Route A</text><text x="245" y="295">Route B</text><text x="510" y="91">Alternative link</text>
+</g>
+<!-- Nodes -->
+<g filter="url(#shadow)">
+ <rect x="22" y="148" width="66" height="64" rx="12" fill="#dbeafe" stroke="#60a5fa" stroke-width="2"/>
+ <rect x="180" y="160" width="38" height="40" rx="9" fill="#ede9fe" stroke="#a78bfa" stroke-width="2"/>
+ <rect x="315" y="86" width="38" height="38" rx="9" fill="#ede9fe" stroke="#a78bfa" stroke-width="2"/>
+ <rect x="315" y="241" width="38" height="38" rx="9" fill="#ede9fe" stroke="#a78bfa" stroke-width="2"/>
+ <rect x="455" y="160" width="38" height="40" rx="9" fill="#ede9fe" stroke="#a78bfa" stroke-width="2"/>
+ <rect x="590" y="148" width="90" height="64" rx="12" fill="#d1fae5" stroke="#34d399" stroke-width="2"/>
+</g>
+<g font-size="12" font-weight="750" text-anchor="middle" fill="#172033">
+ <text x="55" y="174">SENDER</text><text x="55" y="191">PC A</text>
+ <text x="199" y="184">R1</text><text x="334" y="109">R2</text><text x="334" y="264">R3</text><text x="474" y="184">R4</text>
+ <text x="635" y="174">RECEIVER</text><text x="635" y="191">PC B</text>
+</g>
+<g font-size="10" text-anchor="middle" fill="#64748b">
+ <text x="55" y="226">Send</text><text x="199" y="216">Router 1</text><text x="334" y="137">Router 2</text><text x="334" y="292">Router 3</text><text x="474" y="216">Router 4</text><text x="635" y="226">Destination</text>
+</g>
+<!-- Packet markers dynamically inserted -->
+<g id="movingPackets"></g>
+</svg>
+</div>
+<div class="legend"><span><i class="dot" style="background:#2563eb"></i>Packet 1</span><span><i class="dot" style="background:#ea580c"></i>Packet 2</span><span><i class="dot" style="background:#059669"></i>Packet 3</span><span>Solid links = main routes · Dashed link = alternative route</span></div>
+<div class="packet-row" id="packetStatus"></div>
+<div class="controls" style="margin-top:14px">
+ <button id="next" class="btn">Next step →</button><button id="auto" class="btn secondary">▶ Play animation</button><button id="reset" class="btn secondary">Reset simulation</button>
+</div>
+<p class="status" id="stepStatus" aria-live="polite" style="margin-top:12px">Step 0: Ready to send packets.</p>
+</section>
+
+<section class="card">
+<h2>What is happening?</h2>
+<div class="two">
+ <div class="panel"><h3 id="explainTitle">Before transmission</h3><p id="explanation">The sender splits a message into packets. Each packet has a sequence number so the receiver can identify its place in the original message.</p></div>
+ <div class="panel"><h3>Remember</h3><p id="keyPoint">Packet switching sends data in separate packets. Routers forward packets towards the destination.</p></div>
+</div>
+</section>
+
+<section class="card">
+<h2>Arrival order vs sequence order</h2>
+<p class="muted">The receiver can get packets in a different order from the order they were sent. Sequence numbers help it put the data back in order.</p>
+<div class="two" style="margin-top:10px">
+ <div class="panel"><h3>Arrival order</h3><div id="arrivalOrder">No packets received yet.</div></div>
+ <div class="panel"><h3>Reassembled order</h3><div id="reassembledOrder">Waiting for all packets.</div></div>
+</div>
+<div id="completeNote" class="success" style="margin-top:12px;display:none"><strong>Message reassembled!</strong><p>The receiver uses sequence numbers to arrange the packet payloads in the correct order.</p><p id="finalMessage" style="font-weight:800;font-size:1.15rem"></p></div>
+</section>
+
+<section class="card">
+<h2>Check your understanding</h2>
+<div class="note"><strong>Question:</strong> Why might packet 3 arrive before packet 2?</div>
+<details style="margin-top:12px"><summary style="cursor:pointer;font-weight:700">Show a model answer</summary><p style="margin-top:8px">Packets can travel along different routes through the network. A route may be shorter or less congested, so a later packet can arrive before an earlier packet. Sequence numbers help the receiver reassemble the message in the correct order.</p></details>
+<p class="muted" style="margin-top:12px">This is a simplified educational model. Real routing decisions and packet fields depend on network protocols; packet switching does not mean every packet must take a different route.</p>
+</section>
+<div class="footer">Classroom simulator · Runs locally in your browser · No network connection or data collection required</div>
+</main>
+<script>
+(() => {
+const $=id=>document.getElementById(id);
+const packets=[
+ {id:1,payload:'HEL',color:'#2563eb',route:[ [88,180],[180,180],[218,160],[315,105],[353,105],[455,180],[493,180],[590,180] ],routeName:'Route A (via R2)',steps:['At sender','At Router 1','Travelling to Router 2','At Router 2','Travelling to Router 4','At Router 4','Travelling to receiver','Arrived']},
+ {id:2,payload:'LO ',color:'#ea580c',route:[[88,180],[180,180],[218,200],[315,260],[353,260],[455,180],[493,180],[590,180]],routeName:'Route B (via R3)',steps:['At sender','At Router 1','Travelling to Router 3','At Router 3','Travelling to Router 4','At Router 4','Travelling to receiver','Arrived']},
+ {id:3,payload:'WORLD',color:'#059669',route:[[88,180],[180,180],[218,160],[315,105],[353,105],[455,180],[493,180],[590,180]],routeName:'Route A (via R2)',steps:['At sender','At Router 1','Travelling to Router 2','At Router 2','Travelling to Router 4','At Router 4','Travelling to receiver','Arrived']}
+];
+let step=0,timer=null;
+const maxStep=8;
+const eventCopy=[
+ ['Before transmission','The sender divides the message into numbered packets. Each packet carries part of the original data.','A packet contains a payload and control information in its header.'],
+ ['Packets leave the sender','All three packets begin at the sender and move towards Router 1.','Packets are sent separately, not as one unbroken message.'],
+ ['Router 1 forwards packets','Router 1 forwards packets towards the destination. Packet 1 and packet 3 use the upper route; packet 2 uses the lower route.','Routers examine packet information and choose a suitable next hop.'],
+ ['Packets use alternative routes','Packet 1 and packet 3 travel via Router 2. Packet 2 travels via Router 3.','Different packets may follow different routes depending on routing decisions.'],
+ ['Packets move towards Router 4','The packets progress through the network. The lower route has a different journey from the upper route.','Network conditions and route choices can affect travel time.'],
+ ['Packets reach Router 4','The packets converge at Router 4 before heading towards the receiver.','Routers forward packets from one network link to the next.'],
+ ['Packets approach the receiver','Packet 1 reaches the receiver first in this demonstration. Packet 3 follows, while packet 2 is delayed.','Arrival order does not have to match sequence-number order.'],
+ ['Packets arrive out of order','The receiver has packet 1, then packet 3, then packet 2. Their arrival order differs from their sequence numbers.','Sequence numbers help the receiver identify the correct order.'],
+ ['Message reassembled','The receiver arranges the payloads by sequence number: 1, 2, 3. The original message is reconstructed.','Packet switching supports reassembly using packet order information; reliable delivery may involve additional protocols.']
+];
+const arrival=[];
+function pointAt(route,t){
+ const lengths=[];let total=0;
+ for(let i=1;i<route.length;i++){const d=Math.hypot(route[i][0]-route[i-1][0],route[i][1]-route[i-1][1]);lengths.push(d);total+=d;}
+ let target=t*total;
+ for(let i=0;i<lengths.length;i++){if(target<=lengths[i]){const a=route[i],b=route[i+1],u=lengths[i]===0?0:target/lengths[i];return [a[0]+(b[0]-a[0])*u,a[1]+(b[1]-a[1])*u];}target-=lengths[i];}
+ return route[route.length-1];
+}
+function progressFor(id,s){
+ // Packet 1 arrives at step 6, packet 3 at step 7, packet 2 at step 8.
+ const arrivalAt={1:6,3:7,2:8}[id];
+ if(s<=1)return s===0?0:.08;
+ if(s>=arrivalAt)return 1;
+ return Math.min(.94,.12+(s-1)/(arrivalAt-1)*.78);
+}
+function render(){
+ const group=$('movingPackets');group.innerHTML='';
+ packets.forEach(p=>{
+  const arrived=arrival.some(x=>x.id===p.id);
+  const progress=progressFor(p.id,step);
+  const [x,y]=pointAt(p.route,progress);
+  const g=document.createElementNS('http://www.w3.org/2000/svg','g');
+  const circle=document.createElementNS('http://www.w3.org/2000/svg','circle');
+  circle.setAttribute('cx',x);circle.setAttribute('cy',y);circle.setAttribute('r','13');circle.setAttribute('fill',p.color);circle.setAttribute('stroke','#fff');circle.setAttribute('stroke-width','2');
+  const text=document.createElementNS('http://www.w3.org/2000/svg','text');
+  text.setAttribute('x',x);text.setAttribute('y',y+4);text.setAttribute('fill','#fff');text.setAttribute('font-size','11');text.setAttribute('font-weight','800');text.setAttribute('text-anchor','middle');text.textContent=p.id;
+  const title=document.createElementNS('http://www.w3.org/2000/svg','title');title.textContent='Packet '+p.id+' — payload '+p.payload;
+  g.append(circle,text,title);group.append(g);
+ });
+ $('packetStatus').innerHTML='';
+ packets.forEach(p=>{
+  const chip=document.createElement('span');chip.className='packet-chip'+(arrival.some(x=>x.id===p.id)?' arrived':'');
+  chip.textContent='Packet '+p.id+' · '+(arrival.some(x=>x.id===p.id)?'Arrived':'In transit');
+  $('packetStatus').append(chip);
+ });
+ const ev=eventCopy[Math.min(step,eventCopy.length-1)];
+ $('explainTitle').textContent=ev[0];$('explanation').textContent=ev[1];$('keyPoint').textContent=ev[2];
+ $('stepStatus').textContent='Step '+step+': '+ev[0]+'.';
+ $('arrivalOrder').textContent=arrival.length?arrival.map(p=>'Packet '+p.id+' ('+p.payload+')').join(' → '):'No packets received yet.';
+ const sorted=arrival.slice().sort((a,b)=>a.id-b.id);
+ $('reassembledOrder').textContent=sorted.length?sorted.map(p=>'Packet '+p.id).join(' → '):'Waiting for packets.';
+ if(step===maxStep){
+  $('completeNote').style.display='block';
+  $('finalMessage').textContent=packets.slice().sort((a,b)=>a.id-b.id).map(p=>p.payload).join('').trim();
+ }else $('completeNote').style.display='none';
+ $('next').disabled=step>=maxStep;
+}
+function advance(){
+ if(step>=maxStep){stop();return;}
+ step++;
+ if(step===6){arrival.push(packets[0]);}
+ if(step===7){arrival.push(packets[2]);}
+ if(step===8){arrival.push(packets[1]);}
+ render();
+ if(step>=maxStep)stop();
+}
+function stop(){if(timer){clearInterval(timer);timer=null;}$('auto').textContent='▶ Play animation';}
+$('next').addEventListener('click',()=>{stop();advance();});
+$('auto').addEventListener('click',()=>{
+ if(timer){stop();return;}
+ if(step>=maxStep){reset();} $('auto').textContent='Ⅱ Pause animation';
+ timer=setInterval(advance,1200);
+});
+$('reset').addEventListener('click',reset);
+function reset(){stop();step=0;arrival.length=0;render();}
+render();
+})();
+</script>
+</body>
+</html>
