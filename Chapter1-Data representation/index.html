@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapter 2 – Data Transmission | IGCSE Quiz Bank</title>
+<style>
+:root{--navy:#172b4d;--blue:#2457c5;--ink:#172337;--muted:#64748b;--line:#dce4ef;--bg:#f3f6fb;--green:#16834a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,Helvetica,sans-serif;line-height:1.5}
+header{background:var(--navy);color:#fff;padding:34px 18px}
+.wrap{max-width:920px;margin:auto}
+.eyebrow{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#c6d5eb;font-weight:bold}
+h1{font-size:clamp(25px,4vw,34px);margin:7px 0}
+header p{margin:0;color:#dbe6f5}
+main{max-width:920px;margin:26px auto;padding:0 15px 50px}
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.count{color:var(--muted);font-size:14px}
+.search{width:min(100%,300px);padding:11px 13px;border:1px solid var(--line);border-radius:9px;font-size:15px;background:white}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+.card{display:flex;flex-direction:column;gap:10px;background:white;border:1px solid var(--line);border-radius:14px;padding:19px;box-shadow:0 4px 15px #172b4d0a}
+.icon{width:42px;height:42px;display:grid;place-items:center;background:#eaf0ff;border-radius:11px;color:var(--blue);font-size:22px}
+.card h2{font-size:17px;line-height:1.35;margin:0;overflow-wrap:anywhere}
+.card p{font-size:13px;color:var(--muted);margin:0}
+.open{display:inline-block;margin-top:auto;padding:10px 13px;background:var(--blue);color:#fff;text-decoration:none;border-radius:8px;font-weight:bold;text-align:center}
+.open:hover{background:#1946a5}
+.state{background:white;border:1px solid var(--line);border-radius:12px;padding:20px;color:var(--muted)}
+.state.error{color:#a12b24;background:#fff5f4}
+footer{text-align:center;color:var(--muted);font-size:12px;margin-top:26px}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <div class="eyebrow">OD-CS-teacher · IGCSE Quiz Bank</div>
+  <h1>Chapter 2 – Data Transmission</h1>
+  <p>Choose a quiz below and click “Open quiz” to start practising.</p>
+</div></header>
+<main>
+  <div class="toolbar">
+    <div class="count" id="count">Loading quizzes…</div>
+    <input class="search" id="search" type="search" placeholder="Search quizzes…" aria-label="Search quizzes">
+  </div>
+  <div id="list" class="grid"><div class="state">Loading quiz list…</div></div>
+  <footer>IGCSE Computer Science · Interactive practice</footer>
+</main>
+<script>
+const owner = "od-cs-teacher";
+const repo = "IGCSE-Quiz-bank";
+const folder = "Chapter 2 - Data transmission";
+const branch = "main";
+const api = `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(folder)}?ref=${branch}`;
+const pagesBase = `https://${owner}.github.io/${repo}/${encodeURIComponent(folder)}/`;
+let quizzes = [];
+const list = document.getElementById("list");
+const count = document.getElementById("count");
+const search = document.getElementById("search");
+
+function niceName(filename){
+  return filename.replace(/\.html?$/i,"").replace(/[_-]+/g," ").replace(/\s+/g," ").trim();
+}
+function draw(){
+  const term = search.value.trim().toLowerCase();
+  const shown = quizzes.filter(q => niceName(q.name).toLowerCase().includes(term));
+  count.textContent = `${shown.length} quiz${shown.length===1?"":"zes"} available`;
+  if(!shown.length){
+    list.innerHTML = '<div class="state">No quizzes match your search.</div>';
+    return;
+  }
+  list.innerHTML = shown.map(q => {
+    const href = pagesBase + encodeURIComponent(q.name);
+    return `<article class="card">
+      <div class="icon" aria-hidden="true">✓</div>
+      <h2>${escapeHtml(niceName(q.name))}</h2>
+      <p>Interactive HTML quiz</p>
+      <a class="open" href="${href}">Open quiz →</a>
+    </article>`;
+  }).join("");
+}
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+search.addEventListener("input",draw);
+fetch(api,{headers:{"Accept":"application/vnd.github+json"}})
+  .then(response=>{
+    if(!response.ok) throw new Error(`GitHub returned ${response.status}. Check that the repository and folder are public and the branch is correct.`);
+    return response.json();
+  })
+  .then(files=>{
+    quizzes = files.filter(f=>f.type==="file" && /\.html?$/i.test(f.name) && f.name.toLowerCase()!=="index.html")
+                   .sort((a,b)=>a.name.localeCompare(b.name));
+    draw();
+  })
+  .catch(error=>{
+    count.textContent="Quiz list could not be loaded";
+    list.innerHTML=`<div class="state error">${escapeHtml(error.message)}<br><br>Try refreshing the page. If the issue continues, check the repository name, folder name and GitHub Pages deployment.</div>`;
+  });
+</script>
+</body>
+</html>
