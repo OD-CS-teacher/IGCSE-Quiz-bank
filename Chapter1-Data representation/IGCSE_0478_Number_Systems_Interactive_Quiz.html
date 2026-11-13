@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IGCSE 0478 - Number Systems Interactive Quiz</title>
+<style>
+:root{--navy:#172554;--blue:#2563eb;--pale:#eff6ff;--green:#15803d;--red:#b91c1c;--ink:#172033;--muted:#64748b;--line:#dbe3ef}
+*{box-sizing:border-box}body{margin:0;background:#f4f7fb;color:var(--ink);font:16px/1.55 Arial,sans-serif}
+.wrap{max-width:900px;margin:28px auto;padding:0 16px}.top{background:linear-gradient(135deg,#172554,#1d4ed8);color:white;padding:26px;border-radius:18px}
+.top h1{margin:0 0 6px;font-size:27px}.top p{margin:0;color:#dbeafe}.meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.pill{background:#ffffff20;border:1px solid #ffffff40;padding:5px 11px;border-radius:20px;font-size:13px}
+.panel{background:white;border:1px solid var(--line);border-radius:16px;padding:24px;margin-top:18px;box-shadow:0 5px 20px #0f172a0a}
+.progressrow{display:flex;justify-content:space-between;color:var(--muted);font-size:14px;margin-bottom:9px}.bar{height:8px;background:#e2e8f0;border-radius:20px;overflow:hidden}.fill{height:100%;background:var(--blue);width:10%;transition:width .2s}
+.qhead{display:flex;justify-content:space-between;gap:12px;align-items:center;margin:18px 0 12px}.qnum{font-size:14px;font-weight:bold;color:var(--blue)}.marks{font-size:13px;color:#475569;background:#f1f5f9;padding:5px 10px;border-radius:20px}
+.question{font-size:19px;font-weight:600;margin:12px 0 20px;white-space:pre-line}.options{display:grid;gap:10px}.option{border:1px solid var(--line);border-radius:11px;padding:13px 15px;cursor:pointer;display:flex;gap:12px;align-items:flex-start}.option:hover{border-color:#93c5fd;background:#f8fbff}.option.selected{border:2px solid var(--blue);background:var(--pale);padding:12px 14px}.letter{font-weight:bold;color:var(--blue);min-width:22px}.option.correct{border-color:#86efac;background:#f0fdf4}.option.wrong{border-color:#fca5a5;background:#fef2f2}
+textarea{width:100%;min-height:145px;padding:14px;border:1px solid #cbd5e1;border-radius:11px;font:16px/1.5 Arial;resize:vertical}textarea:focus{outline:2px solid #93c5fd;border-color:var(--blue)}
+.hint{font-size:13px;color:var(--muted);margin:8px 0 0}.feedback{display:none;margin-top:18px;padding:16px;border-radius:12px;border:1px solid var(--line);background:#f8fafc}.feedback.show{display:block}.feedback h3{margin:0 0 8px;font-size:16px}.feedback p{margin:7px 0}.feedback.good{background:#f0fdf4;border-color:#bbf7d0}.feedback.bad{background:#fff7ed;border-color:#fed7aa}
+.model{background:white;border-left:4px solid var(--green);padding:12px 14px;margin-top:10px;border-radius:5px}
+.controls{display:flex;justify-content:space-between;gap:10px;margin-top:22px;flex-wrap:wrap}button{border:0;border-radius:10px;padding:11px 18px;font-size:15px;font-weight:bold;cursor:pointer}button:disabled{opacity:.4;cursor:not-allowed}.primary{background:var(--blue);color:white}.secondary{background:#e2e8f0;color:#1e293b}.check{background:#0f766e;color:white}
+.result{text-align:center}.score{font-size:42px;font-weight:800;color:var(--navy)}.reviewitem{text-align:left;border-top:1px solid var(--line);padding:14px 0}.reviewitem strong{display:block}.small{font-size:13px;color:var(--muted)}
+@media(max-width:600px){.panel{padding:17px}.top h1{font-size:22px}.question{font-size:17px}.controls button{flex:1}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+<h1>Number Systems</h1>
+<p>Cambridge IGCSE Computer Science (0478) · Interactive Practice Quiz</p>
+<div class="meta"><span class="pill">10 questions</span><span class="pill">24 marks</span><span class="pill">Q1–Q5 Multiple Choice</span><span class="pill">Q6–Q10 Written</span></div>
+</header>
+<div id="quiz" class="panel">
+<div class="progressrow"><span id="progressText">Question 1 of 10</span><span id="scoreText">Answered: 0</span></div>
+<div class="bar"><div class="fill" id="progressFill"></div></div>
+<div class="qhead"><span class="qnum" id="qnum">QUESTION 1</span><span class="marks" id="marks">1 mark</span></div>
+<div class="question" id="question"></div>
+<div id="answerArea"></div>
+<div class="feedback" id="feedback"></div>
+<div class="controls">
+<button class="secondary" id="prev">← Previous</button>
+<div style="display:flex;gap:9px"><button class="check" id="check">Check answer</button><button class="primary" id="next">Next →</button></div>
+</div>
+</div>
+<div id="result" class="panel result" style="display:none"></div>
+<p class="small" style="text-align:center;margin:18px 0">Practice resource based on the supplied Thinka.ai Number Systems practice page. Written responses are self-checked against model answers; they are not automatically marked.</p>
+</div>
+<script>
+const questions = [
+{type:"mcq",marks:1,q:"An 8-bit register contains the binary value 00111100₂. What is the result in binary after a logical right shift of 3 places is performed?",opts:["00000111₂","00000011₂","11100000₂","00001111₂"],a:0,why:"A logical right shift moves every bit three places to the right and fills the three leftmost positions with 0s: 00111100 → 00011110 → 00001111 → 00000111."},
+{type:"mcq",marks:1,q:"What is the hexadecimal representation of the denary number 455?",opts:["1C8₁₆","2C7₁₆","1C7₁₆","1B7₁₆"],a:2,why:"455 ÷ 16 = 28 remainder 7; 28 ÷ 16 = 1 remainder 12 (C). Reading remainders upwards gives 1C7₁₆."},
+{type:"mcq",marks:1,q:"A computer uses 8-bit registers to store positive integers. What is the result of the following binary addition?\n10101100₂ + 01100011₂",opts:["10001111₂ with an overflow error","00001111₂ with an overflow error","00011111₂ with no overflow error","11101111₂ with no overflow error"],a:1,why:"The denary values are 172 and 99. Their sum is 271, which is greater than the maximum 8-bit unsigned value 255. The lower 8 bits are 00001111₂, and overflow occurs."},
+{type:"mcq",marks:1,q:"In the context of computer data representation, how many bits of information are represented by the hexadecimal value C4₁₆?",opts:["4 bits","8 bits","16 bits","2 bits"],a:1,why:"Each hexadecimal digit represents 4 bits. C4 has two hexadecimal digits, so it represents 2 × 4 = 8 bits."},
+{type:"mcq",marks:1,q:"A CPU uses 8-bit registers to store positive integers. It attempts to add the binary numbers 11110000₂ and 00010101₂. Which statement correctly describes the result of this operation?",opts:["The result is 00000101₂ and an overflow error occurs because the total value exceeds 255.","The result is 10000101₂ and no error occurs because the sum fits within 8 bits.","The result is 11111111₂ and the register is automatically cleared to zero.","The result is 00010101₂ and a logic error occurs because of a sign bit change."],a:0,why:"11110000₂ = 240 and 00010101₂ = 21. The sum is 261 (100000101₂). An 8-bit register keeps the lower 8 bits, 00000101₂, and overflow occurs because 261 > 255."},
+{type:"written",marks:2,q:"Convert the 8-bit binary number 11100101₂ into its equivalent hexadecimal representation.",model:"Group the bits into two 4-bit nibbles: 1110 0101. 1110₂ = E₁₆ and 0101₂ = 5₁₆. Answer: E5₁₆.",points:"1 mark for correctly grouping/converting the nibbles; 1 mark for E5₁₆."},
+{type:"written",marks:3,q:"Convert the denary number 219 into its equivalent hexadecimal representation.",model:"219 ÷ 16 = 13 remainder 11. 13 = D and 11 = B in hexadecimal. Answer: DB₁₆.",points:"Award for correct division/remainders and final answer DB₁₆."},
+{type:"written",marks:5,q:"Calculate the 8-bit binary addition of 10011000₂ and 11001101₂. Explain why the resulting value would cause an overflow error in an 8-bit register.",model:"10011000₂ + 11001101₂ = 1 01100101₂. The 8-bit result is 01100101₂, with a carry beyond the 8th bit. In denary, 10011000₂ = 152 and 11001101₂ = 205; total = 357. An unsigned 8-bit register can store only 0 to 255, so 357 cannot be represented and overflow occurs.",points:"Show correct binary addition; identify the 8-bit stored result/carry; explain that 357 exceeds the maximum unsigned 8-bit value 255."},
+{type:"written",marks:4,q:"a) Convert the binary number 11010110₂ to its denary (base 10) equivalent.\n\nb) An 8-bit register stores the positive binary number 10110100₂. Another 8-bit register stores 01001101₂. Perform the binary addition of these two numbers and state the result in 8-bit binary. Convert the 8-bit binary sum to its denary equivalent. Indicate if an overflow error occurs and explain why.",model:"a) 11010110₂ = 128 + 64 + 16 + 4 + 2 = 214.\n\nb) 10110100₂ (180) + 01001101₂ (77) = 1 00000001₂ (257). The 8-bit stored result is 00000001₂, which is 1 in denary. Overflow occurs because the full sum 257 is greater than 255, the maximum value in an unsigned 8-bit register.",points:"a) 214 (1 mark). b) Correct addition (1); 8-bit result 00000001₂ and denary 1 (1); overflow with valid explanation (1)."},
+{type:"written",marks:5,q:"An 8-bit CPU performs addition on two positive binary integers stored in its registers.\nRegister 1: 01010101₂\nRegister 2: 10101011₂\n\na) Calculate the binary sum of the values in Register 1 and Register 2. Show your working. [2]\n\nb) Convert the resulting binary sum into its denary equivalent. [2]\n\nc) Explain why the CPU would flag an error if it attempted to store the result of the denary calculation 200 + 100 in a single 8-bit register. [1]",model:"a) 01010101₂ + 10101011₂ = 1 00000000₂. The full 9-bit sum is 100000000₂; the lower 8 bits stored are 00000000₂.\n\nb) The full sum is 256 in denary. (The 8-bit stored value alone is 0.)\n\nc) 200 + 100 = 300, which is greater than 255, the maximum positive value for an unsigned 8-bit register. Therefore, it causes overflow.",points:"a) Correct binary addition and working (2). b) Correct denary conversion of full sum, 256 (2). c) States 300 exceeds 255 / cannot be represented in 8 bits (1)."}
+];
+let index=0, answers=Array(questions.length).fill(null), checked=Array(questions.length).fill(false), order=[];
+function shuffleOptions(q){let arr=q.opts.map((t,i)=>({t,correct:i===q.a}));for(let i=arr.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+questions.forEach(q=>{if(q.type==="mcq")q.shuffled=shuffleOptions(q)});
+const $=id=>document.getElementById(id);
+function render(){
+ const q=questions[index];$("progressText").textContent=`Question ${index+1} of ${questions.length}`;$("scoreText").textContent=`Answered: ${answers.filter(x=>x!==null&&x!=="").length}`;$("progressFill").style.width=((index+1)/questions.length*100)+"%";$("qnum").textContent=`QUESTION ${index+1}`;$("marks").textContent=`${q.marks} ${q.marks===1?"mark":"marks"}`;$("question").textContent=q.q;
+ const area=$("answerArea");area.innerHTML="";
+ if(q.type==="mcq"){
+  const opts=document.createElement("div");opts.className="options";
+  q.shuffled.forEach((o,i)=>{const b=document.createElement("div");b.className="option"+(answers[index]===i?" selected":"");if(checked[index])b.className+=" "+(o.correct?"correct":(answers[index]===i?"wrong":""));b.innerHTML=`<span class="letter">${String.fromCharCode(65+i)}.</span><span></span>`;b.children[1].textContent=o.t;b.onclick=()=>{if(checked[index])return;answers[index]=i;render()};opts.appendChild(b)});area.appendChild(opts);
+ }else{
+  const ta=document.createElement("textarea");ta.placeholder="Write your answer here. Show your working where appropriate.";ta.value=answers[index]||"";ta.disabled=checked[index];ta.addEventListener("input",()=>{answers[index]=ta.value;$("scoreText").textContent=`Answered: ${answers.filter(x=>x!==null&&x!=="").length}`});area.appendChild(ta);const hint=document.createElement("div");hint.className="hint";hint.textContent="Written response: compare your work with the model answer after selecting Check answer.";area.appendChild(hint);
+ }
+ const fb=$("feedback");fb.className="feedback"+(checked[index]?" show":"");fb.innerHTML="";
+ if(checked[index]){
+  if(q.type==="mcq"){const correct=q.shuffled.findIndex(o=>o.correct);const good=answers[index]===correct;fb.classList.add(good?"good":"bad");fb.innerHTML=`<h3>${good?"Correct!":"Not quite — review the correct answer."}</h3><p><b>Correct answer: ${String.fromCharCode(65+correct)}. ${q.shuffled[correct].t}</b></p><p>${q.why}</p>`}
+  else{fb.classList.add("good");fb.innerHTML=`<h3>Model answer</h3><div class="model"></div><p><b>Mark guidance:</b> ${q.points}</p>`;fb.querySelector(".model").textContent=q.model}
+ }
+ $("prev").disabled=index===0;$("next").textContent=index===questions.length-1?"Finish →":"Next →";$("check").disabled=checked[index];$("check").textContent=checked[index]?"Checked":"Check answer";
+}
+$("prev").onclick=()=>{if(index>0){index--;render()}};
+$("next").onclick=()=>{if(index<questions.length-1){index++;render()}else showResults()};
+$("check").onclick=()=>{const q=questions[index];if(q.type==="mcq"&&answers[index]===null){alert("Please select an answer first.");return}if(q.type==="written"&&(!answers[index]||!answers[index].trim())){alert("Please write your answer first.");return}checked[index]=true;render()};
+function showResults(){
+ $("quiz").style.display="none";const r=$("result");r.style.display="block";
+ let correct=0;questions.forEach((q,i)=>{if(q.type==="mcq"&&checked[i]&&q.shuffled[answers[i]]?.correct)correct++});
+ let html=`<h2>Quiz completed!</h2><div class="score">${correct} / 5</div><p>Correct multiple-choice answers. Written questions are not automatically marked.</p><p class="small">You answered ${answers.filter(x=>x!==null&&x!=="").length} of 10 questions.</p><hr>`;
+ questions.forEach((q,i)=>{html+=`<div class="reviewitem"><strong>Q${i+1} · ${q.marks} marks · ${q.type==="mcq"?(q.shuffled[answers[i]]?.correct?"Correct":"Review"): "Written response"}</strong><div>${q.q.replace(/\n/g,"<br>")}</div>`;if(q.type==="mcq"){const c=q.shuffled.findIndex(o=>o.correct);html+=`<p>Your answer: ${answers[i]===null?"Not answered":q.shuffled[answers[i]].t}<br>Correct answer: ${q.shuffled[c].t}</p><p>${q.why}</p>`}else{html+=`<p><b>Model answer:</b><br>${q.model.replace(/\n/g,"<br>")}</p>`}html+="</div>"});
+ html+=`<button class="primary" onclick="location.reload()">Retake quiz</button>`;r.innerHTML=html;
+}
+render();
+</script>
+</body></html>
